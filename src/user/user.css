@@ -1,0 +1,32 @@
+.user-list {
+    margin-top: 20px;
+}
+
+.user-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    background-color: #f9f9f9;
+}
+
+.user-details {
+    font-weight: bold;
+}
+
+.delete-button {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 3px;
+    background-color: #dc3545;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.delete-button:hover {
+    background-color: #c82333;
+}

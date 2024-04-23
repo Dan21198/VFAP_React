@@ -1,0 +1,132 @@
+.custom-note-form form {
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 20px;
+}
+
+.custom-note-form > .container:first-child {
+    padding: 20px;
+    background-color: #f5f5f5;
+    border-radius: 5px;
+    margin: 0 auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.new-note-section, .search-section {
+    display: flex;
+    align-items: flex-start;
+}
+
+.note-and-tag {
+    display: flex;
+}
+
+.create-note, .tag-section, .search-section {
+    flex: 1;
+    margin-right: 20px;
+}
+
+.custom-note-form label {
+    margin-bottom: 5px;
+}
+
+.custom-note-form input[type="text"],
+.custom-note-form textarea,
+.custom-note-form select {
+    padding: .375rem .75rem;
+    margin-bottom: 10px;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    width: 100%;
+}
+
+.custom-note-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.custom-note-form input[type="text"],
+.custom-note-form textarea {
+    height: calc(1.5em + .75rem + 2px);
+}
+
+.custom-note-form button {
+    padding: .375rem .75rem;
+    margin-top: 8px;
+    border-radius: .25rem;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.custom-note-form button:last-child {
+    background-color: #dc3545;
+}
+
+.custom-note-form button:hover {
+    filter: brightness(90%);
+}
+
+.search-section {
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 20px;
+}
+
+.tag-section {
+    margin-bottom: 15px;
+}
+
+.main-content {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.notes-section {
+    flex-grow: 3;
+    flex-basis: 70%;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.search-section {
+    flex-grow: 1;
+    flex-basis: 30%;
+    max-width: 350px;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.search-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group {
+    margin-bottom: 10px;
+}
+
+.search-button {
+    align-self: flex-start;
+}
+
+.create-note {
+    width: 100%;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        flex-direction: column;
+    }
+
+    .notes-section, .search-section {
+        flex-basis: 100%;
+        max-width: none;
+    }
+}
