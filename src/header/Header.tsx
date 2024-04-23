@@ -27,12 +27,16 @@ const Header = () => {
 
     return (
         <nav className="navbar-custom">
-            <a className="navbar-brand-custom" href="#" onClick={(e) => {e.preventDefault(); navigate('/');}}>VFAP</a>
-            <Button variant="link" className="logout-icon" onClick={handleLogout}>
-                <i className="bi-box-arrow-right"></i>
-                Logout
-            </Button>
-            <DropdownMenu />
+            <div className="header-content">
+                <a className="navbar-brand-custom" href="#" onClick={(e) => { e.preventDefault(); navigate('/'); }}>VFAP</a>
+                <div className="menu-and-logout">
+                    <DropdownMenu />
+                    <Button variant="link" className="logout-icon" onClick={handleLogout}>
+                        <i className="bi-box-arrow-right"></i>
+                        Logout
+                    </Button>
+                </div>
+            </div>
         </nav>
     );
 };
