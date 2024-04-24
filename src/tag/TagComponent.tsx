@@ -2,6 +2,7 @@ import React, { useState, useEffect} from 'react';
 // @ts-ignore
 import { fetchTags, createTag, deleteTag } from './TagAPI.ts';
 import { Form, Button, InputGroup, Container, Row, Col} from 'react-bootstrap';
+import './tag.css';
 
 const TagComponent = () => {
     const [newTagName, setNewTagName] = useState('');
@@ -29,7 +30,7 @@ const TagComponent = () => {
         try {
             await createTag(newTagName);
             setNewTagName('');
-            loadTags();
+            await loadTags();
         } catch (error) {
             console.error('Failed to create tag:', error);
         }
@@ -38,7 +39,7 @@ const TagComponent = () => {
     const handleDeleteTag = async () => {
         try {
             await deleteTag(selectedTagId);
-            loadTags();
+            await loadTags();
         } catch (error) {
             console.error('Failed to delete tag:', error);
         }
@@ -55,10 +56,11 @@ const TagComponent = () => {
                                 type="text"
                                 placeholder="Enter new tag name"
                                 value={newTagName}
+                                className="input-padding"
                                 onChange={e => setNewTagName(e.target.value)}
                             />
                             <InputGroup>
-                                <Button variant="primary" type="submit">Create</Button>
+                                <Button variant="primary" type="submit" className="button-padding">Create</Button>
                             </InputGroup>
                         </InputGroup>
                     </Form>
@@ -76,7 +78,7 @@ const TagComponent = () => {
                             ))}
                         </Form.Control>
                         <InputGroup>
-                            <Button variant="danger" onClick={handleDeleteTag}>Delete</Button>
+                            <Button variant="danger" onClick={handleDeleteTag} className="button-padding">Delete</Button>
                         </InputGroup>
                     </InputGroup>
                 </Col>

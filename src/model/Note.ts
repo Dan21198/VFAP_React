@@ -4,4 +4,5 @@ export interface Note {
     content: string;
     finished: boolean;
     finishTime: string;
+    tags?: Tag[];
 }

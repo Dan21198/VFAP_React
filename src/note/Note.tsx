@@ -3,20 +3,22 @@ import React, { useState, useEffect } from 'react';
 import { fetchAllNotes, createNote, updateNote, deleteNote, fetchNotesByFinishedStatus, fetchNotesByTag } from './NoteAPI.ts';
 import { Note } from "../model/Note";
 // @ts-ignore
-import { fetchTags} from '../tag/TagAPI.ts';
+import {assignTagToNote, fetchTags, getTagsByNoteId, removeTagFromNote} from '../tag/TagAPI.ts';
 // @ts-ignore
 import {  Tag } from "../model/Tag.ts";
-import { Button, Container, Row, Col } from 'react-bootstrap';
+import {Button, Container, Row, Col, FormGroup, Form} from 'react-bootstrap';
 import './note.css';
 
 const NoteList = () => {
     const [notes, setNotes] = useState<Note[]>([]);
     const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
-    const [updatedNote, setUpdatedNote] = useState<Note>({ id: 0, title: '', content: '', finished: false, finishTime: '' });
-    const [newNote, setNewNote] = useState<Note>({ id: 0, title: '', content: '', finishTime: '', finished: false });
+    const [updatedNote, setUpdatedNote] = useState<Note>({ id: 0, title: '', content: '', finished: false, finishTime: '', tags: [] });
+    const [newNote, setNewNote] = useState<Note>({ id: 0, title: '', content: '', finishTime: '', finished: false, tags: [] });
     const [searchFinished, setSearchFinished] = useState<string>('');
     const [searchTagId, setSearchTagId] = useState<string>('');
     const [tags, setTags] = useState<Tag[]>([]);
+    const [selectedTagId, setSelectedTagId] = useState<string>('');
+    const [availableTags, setAvailableTags] = useState<Tag[]>([]);
 
     useEffect(() => {
         loadNotes();
@@ -25,8 +27,19 @@ const NoteList = () => {
 
     const loadNotes = async () => {
         try {
-            const response = await fetchAllNotes();
-            setNotes(response.data);
+            const notesResponse = await fetchAllNotes();
+            const notesData = notesResponse.data;
+
+            const notesWithTag = await Promise.all(notesData.map(async (note: Note) => {
+                const tagsForNoteResponse = await getTagsByNoteId(note.id || 0);
+                const noteTags = tagsForNoteResponse.data;
+                return {
+                    ...note,
+                    tags: noteTags
+                };
+            }));
+
+            setNotes(notesWithTag);
         } catch (error) {
             console.error('Failed to fetch notes:', error);
         }
@@ -36,8 +49,9 @@ const NoteList = () => {
         try {
             const response = await fetchTags();
             setTags(response.data);
-        }catch (error) {
-            console.error('Failed to fetch notes:', error);
+            setAvailableTags(response.data);
+        } catch (error) {
+            console.error('Failed to fetch tags:', error);
         }
     };
 
@@ -58,16 +72,12 @@ const NoteList = () => {
             const noteToEdit = notes.find(note => note.id === noteId);
             if (noteToEdit) {
                 setUpdatedNote({
-                    id: noteToEdit.id,
-                    title: noteToEdit.title,
-                    content: noteToEdit.content,
-                    finished: noteToEdit.finished,
-                    finishTime: noteToEdit.finishTime
+                    ...noteToEdit,
+                    tags: noteToEdit.tags ? noteToEdit.tags.map(tag => ({ ...tag })) : []
                 });
             }
         }
     };
-
     const cancelEditing = () => {
         setEditingNoteId(null);
         setUpdatedNote({ id: 0, title: '', content: '', finished: false, finishTime: '' });
@@ -75,14 +85,26 @@ const NoteList = () => {
 
     const updateNoteHandler = async (noteId: number) => {
         try {
-            await updateNote(noteId, updatedNote);
+            const updatedNoteWithTags = {
+                ...updatedNote,
+                tags: updatedNote.tags ?? []
+            };
+
+            if (selectedTagId) {
+                updatedNoteWithTags.tags.push({ id: Number(selectedTagId), name: '' });
+            }
+
+            await updateNote(noteId, updatedNoteWithTags);
             setEditingNoteId(null);
-            setUpdatedNote({ id: 0, title: '', content: '', finished: false, finishTime: '' });
             await loadNotes();
         } catch (error) {
             console.error('Failed to update note:', error);
         }
     };
+
+
+
+
 
     const deleteNoteHandler = async (noteId: number) => {
         try {
@@ -104,11 +126,50 @@ const NoteList = () => {
                 await loadNotes();
                 return;
             }
-            setNotes(filteredNotes);
+
+            const notesWithTag = await Promise.all(filteredNotes.map(async (note: Note) => {
+                const tagsForNoteResponse = await getTagsByNoteId(note.id || 0);
+                const noteTags = tagsForNoteResponse.data;
+                return {
+                    ...note,
+                    tags: noteTags
+                };
+            }));
+
+            setNotes(notesWithTag);
         } catch (error) {
             console.error('Failed to fetch notes:', error);
         }
     };
+
+
+
+    const updateNotesAfterTagChange = async () => {
+        await loadNotes();
+    };
+
+    const assignTag = async (tagId: number) => {
+        try {
+            if (editingNoteId !== null) {
+                await assignTagToNote(Number(tagId), editingNoteId);
+                await updateNotesAfterTagChange();
+            }
+        } catch (error) {
+            console.error('Failed to assign tag to note:', error);
+        }
+    };
+
+    const unassignTag = async (tagId: number) => {
+        try {
+            if (editingNoteId !== null) {
+                await removeTagFromNote(Number(tagId), editingNoteId);
+                await updateNotesAfterTagChange();
+            }
+        } catch (error) {
+            console.error('Failed to remove tag from note:', error);
+        }
+    };
+
 
     return (
         <Container>
@@ -124,32 +185,71 @@ const NoteList = () => {
                                             <li key={note.id} className="list-group-item">
                                                 {editingNoteId !== note.id ? (
                                                     <div>
-                                                        <strong>{note.title}</strong> - {note.content}<br /><br />
+                                                        <strong>{note.title}</strong> - {note.content}<br/><br/>
                                                         <p>Finished: {note.finished ? 'Yes' : 'No'}</p>
                                                         <p>Finish Time: {note.finishTime}</p>
-                                                        <Button variant="primary" onClick={() => startEditing(note.id)}>Edit</Button>
-                                                        <Button variant="danger" onClick={() => deleteNoteHandler(note.id || 0)}>Delete</Button>
+                                                        <p>Tags: {note.tags ? note.tags.map(tag => tag.name).join(', ') : 'No tags'}</p>
+                                                        <Button variant="primary"
+                                                                onClick={() => startEditing(note.id)}>Edit</Button>
+                                                        <Button variant="danger"
+                                                                onClick={() => deleteNoteHandler(note.id || 0)}>Delete</Button>
                                                     </div>
                                                 ) : (
                                                     <form onSubmit={() => updateNoteHandler(note.id || 0)}>
                                                         <label>Title:</label>
-                                                        <input type="text" value={updatedNote.title} className="form-control" onChange={(e) => setUpdatedNote({ ...updatedNote, title: e.target.value })} required /><br /><br />
+                                                        <input type="text" value={updatedNote.title}
+                                                               className="form-control"
+                                                               onChange={(e) => setUpdatedNote({
+                                                                   ...updatedNote,
+                                                                   title: e.target.value
+                                                               })} required/><br/><br/>
                                                         <label>Content:</label>
-                                                        <textarea value={updatedNote.content} className="form-control" onChange={(e) => setUpdatedNote({ ...updatedNote, content: e.target.value })} required></textarea><br /><br />
+                                                        <textarea value={updatedNote.content} className="form-control"
+                                                                  onChange={(e) => setUpdatedNote({
+                                                                      ...updatedNote,
+                                                                      content: e.target.value
+                                                                  })} required></textarea><br/><br/>
                                                         <label>Finished:</label>
-                                                        <input type="checkbox" checked={updatedNote.finished} className="form-check-input" onChange={(e) => setUpdatedNote({ ...updatedNote, finished: e.target.checked })} />
+                                                        <input type="checkbox" checked={updatedNote.finished}
+                                                               className="form-check-input"
+                                                               onChange={(e) => setUpdatedNote({
+                                                                   ...updatedNote,
+                                                                   finished: e.target.checked
+                                                               })}/>
                                                         <label>Finish Time:</label>
                                                         <input type="datetime-local" value={updatedNote.finishTime}
                                                                className="form-control"
                                                                onChange={(e) => setUpdatedNote({
                                                                    ...updatedNote,
-                                                                   finishTime: e.target.value })} /><br /><br />
+                                                                   finishTime: e.target.value
+                                                               })}/><br/><br/>
+                                                        <FormGroup>
+                                                            <Form.Label>Tags:</Form.Label>
+                                                            <Form.Control as="select" value={selectedTagId}
+                                                                          onChange={(e) => setSelectedTagId(e.target.value)}>
+                                                                <option value="">Select Tag</option>
+                                                                {availableTags.map(tag => (
+                                                                    <option key={tag.id}
+                                                                            value={tag.id}>{tag.name}</option>
+                                                                ))}
+                                                            </Form.Control>
+                                                        </FormGroup>
                                                         <div className="button-group">
-                                                            <Button type="submit">Save</Button>
-                                                            <Button type="button" onClick={cancelEditing}>Cancel</Button>
+                                                            <Button variant="primary" type="button"
+                                                                    onClick={() => assignTag(Number(selectedTagId))}>Assign
+                                                                Tag</Button>
+                                                            <Button variant="danger" type="button"
+                                                                    onClick={() => unassignTag(Number(selectedTagId))}>Unassign
+                                                                Tag</Button>
                                                         </div>
+
+                                                            <div className="button-group">
+                                                                <Button type="submit">Save</Button>
+                                                                <Button type="button"
+                                                                        onClick={cancelEditing}>Cancel</Button>
+                                                            </div>
                                                     </form>
-                                                )}
+                                                    )}
                                             </li>
                                         ))}
                                     </ul>
@@ -214,6 +314,7 @@ const NoteList = () => {
             </Row>
         </Container>
     );
+
 };
 
 export default NoteList;

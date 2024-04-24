@@ -14,6 +14,14 @@ export const fetchTags = async (): Promise<AxiosResponse> => {
     });
 };
 
+export const getTagsByNoteId = async (noteId: number): Promise<AxiosResponse> => {
+    return axios.get(`${API_URL}/notes/${noteId}`, {
+        headers: {
+            Authorization: getToken()
+        }
+    });
+};
+
 export const createTag = async (tagName: string): Promise<AxiosResponse> => {
     return axios.post(API_URL, { name: tagName }, {
         headers: {
@@ -31,7 +39,7 @@ export const deleteTag = async (tagId: string): Promise<AxiosResponse> => {
     });
 };
 
-export const assignTagToNote = async (tagId: string, noteId: string): Promise<AxiosResponse> => {
+export const assignTagToNote = async (tagId: number, noteId: number): Promise<AxiosResponse> => {
     return axios.put(`${API_URL}/${tagId}/assign/${noteId}`, {}, {
         headers: {
             Authorization: getToken()
@@ -39,7 +47,7 @@ export const assignTagToNote = async (tagId: string, noteId: string): Promise<Ax
     });
 };
 
-export const removeTagFromNote = async (tagId: string, noteId: string): Promise<AxiosResponse> => {
+export const removeTagFromNote = async (tagId: number, noteId: number): Promise<AxiosResponse> => {
     return axios.put(`${API_URL}/${tagId}/remove/${noteId}`, {}, {
         headers: {
             Authorization: getToken()
