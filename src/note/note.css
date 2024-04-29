@@ -159,7 +159,9 @@
     font-size: 1.5rem !important;
 }
 
-
+.search-button{
+    background-color: #007bff !important;
+}
 
 
 @media (max-width: 768px) {

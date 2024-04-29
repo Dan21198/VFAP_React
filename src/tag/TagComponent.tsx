@@ -60,7 +60,7 @@ const TagComponent = () => {
                                 onChange={e => setNewTagName(e.target.value)}
                             />
                             <InputGroup>
-                                <Button variant="primary" type="submit" className="button-padding">Create</Button>
+                                <Button variant="primary" type="submit" className="button-padding mt-1">Create</Button>
                             </InputGroup>
                         </InputGroup>
                     </Form>
@@ -72,19 +72,21 @@ const TagComponent = () => {
                 <Col md={6}>
                     <h2>Existing Tags</h2>
                     <InputGroup className="mb-3">
-                        <Form.Control as="select" value={selectedTagId} onChange={e => setSelectedTagId(e.target.value)}>
+                        <Form.Control as="select" value={selectedTagId}
+                                      onChange={e => setSelectedTagId(e.target.value)}>
                             {availableTags.map(tag => (
                                 <option key={tag.id} value={tag.id}>{tag.name}</option>
                             ))}
                         </Form.Control>
                         <InputGroup>
-                            <Button variant="danger" onClick={handleDeleteTag} className="button-padding">Delete</Button>
+                            <Button variant="danger" onClick={handleDeleteTag}
+                                    className="button-padding mt-1">Delete</Button>
                         </InputGroup>
                     </InputGroup>
                 </Col>
             </Row>
         </Container>
     );
-};
+}
 
-export default TagComponent;
+    export default TagComponent;

@@ -146,7 +146,7 @@ const NoteList = () => {
 
     const searchNotes = async () => {
         try {
-            let filteredNotes: Note[] = [];
+            let filteredNotes = [];
             if (searchFinished !== '') {
                 filteredNotes = await fetchNotesByFinishedStatus(searchFinished === 'true');
             } else if (searchTagId !== '') {
@@ -158,18 +158,18 @@ const NoteList = () => {
 
             const notesWithTag = await Promise.all(filteredNotes.map(async (note: Note) => {
                 const tagsForNoteResponse = await getTagsByNoteId(note.id || 0);
-                const noteTags = tagsForNoteResponse.data;
-                return {
-                    ...note,
-                    tags: noteTags
-                };
+                return { ...note, tags: tagsForNoteResponse.data };
             }));
 
-            setNotes(notesWithTag);
+            const sortedNotes = sortNotes(notesWithTag, sortKey, sortOrder);
+            setNotes(sortedNotes);
+            setTotalPages(Math.ceil(sortedNotes.length / notesPerPage));
+            setCurrentPage(1);
         } catch (error) {
             console.error('Failed to fetch notes:', error);
         }
     };
+
 
     const updateNotesAfterTagChange = async () => {
         await loadNotes();
