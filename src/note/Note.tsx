@@ -51,7 +51,6 @@ const NoteList = () => {
             setTotalPages(Math.ceil(notesWithTags.length / notesPerPage));
             setCurrentPage(page);
         } catch (error) {
-            console.error('Failed to fetch notes:', error);
         }
     };
 
@@ -73,7 +72,6 @@ const NoteList = () => {
             setTags(response.data);
             setAvailableTags(response.data);
         } catch (error) {
-            console.error('Failed to fetch tags:', error);
         }
     };
 
@@ -96,7 +94,6 @@ const NoteList = () => {
             setNewNote({ id: 0, title: '', content: '', finishTime: '', finished: false });
             await loadNotes();
         } catch (error) {
-            console.error('Failed to create note:', error);
         }
     };
 
@@ -105,7 +102,6 @@ const NoteList = () => {
             setEditingNoteId(noteId);
             const noteToEdit = notes.find(note => note.id === noteId);
             if (noteToEdit) {
-                console.log("Starting edit for note:", noteToEdit);
                 setUpdatedNote({
                     ...noteToEdit,
                     tags: noteToEdit.tags ? noteToEdit.tags.map(tag => ({ ...tag })) : []
@@ -122,16 +118,12 @@ const NoteList = () => {
     const updateNoteHandler = async (noteId: number) => {
         try {
             const { tags, ...updatedNoteWithoutTags } = updatedNote;
-            console.log("Sending updated note to API:", updatedNoteWithoutTags);
 
             await updateNote(noteId, updatedNoteWithoutTags);
-            console.log("Update note API called successfully.");
 
-            await loadNotes(); // Reload notes to reflect the updated information
-            console.log("Notes reloaded after update.");
+            await loadNotes();
             setEditingNoteId(null); // Reset the editing state
         } catch (error) {
-            console.error('Failed to update note:', error);
         }
     };
 
@@ -140,7 +132,6 @@ const NoteList = () => {
             await deleteNote(noteId);
             await loadNotes();
         } catch (error) {
-            console.error('Failed to delete note:', error);
         }
     };
 
@@ -166,7 +157,6 @@ const NoteList = () => {
             setTotalPages(Math.ceil(sortedNotes.length / notesPerPage));
             setCurrentPage(1);
         } catch (error) {
-            console.error('Failed to fetch notes:', error);
         }
     };
 
@@ -182,7 +172,6 @@ const NoteList = () => {
                 await updateNotesAfterTagChange();
             }
         } catch (error) {
-            console.error('Failed to assign tag to note:', error);
         }
     };
 
@@ -193,7 +182,6 @@ const NoteList = () => {
                 await updateNotesAfterTagChange();
             }
         } catch (error) {
-            console.error('Failed to remove tag from note:', error);
         }
     };
 

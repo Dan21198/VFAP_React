@@ -1,13 +1,15 @@
-import React, {FormEvent, useState} from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate  } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import '../global.css';
 
 const LoginForm = () => {
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
-    const navigate = useNavigate()
+    const [snackbar, setSnackbar] = useState({ open: false, message: '' });
+    const navigate = useNavigate();
 
-    const login = async (event: FormEvent<HTMLFormElement>) => {
+    const login = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         try {
             const response = await axios.post('http://localhost:8080/api/v1/auth/authenticate', {
@@ -20,15 +22,20 @@ const LoginForm = () => {
             if (accessToken) {
                 localStorage.setItem('access_token', accessToken);
                 navigate('/notes');
+                setSnackbar({ open: true, message: 'Login successful!' });
             } else {
                 console.error('No token received');
-                alert('Authentication failed: No token received');
+                setSnackbar({ open: true, message: 'Authentication failed: No token received' });
             }
-        } catch (error: any) {
-            console.error('Failed to authenticate:', error.response ? error.response.data : 'No response');
-            alert('Authentication failed!');
+        } catch (error) {
+            setSnackbar({ open: true, message: 'Authentication failed!' });
         }
     };
+
+    const handleCloseSnackbar = () => {
+        setSnackbar({ ...snackbar, open: false });
+    };
+
     return (
         <div className="container mt-5">
             <form onSubmit={login} className="custom-login-form">
@@ -59,6 +66,14 @@ const LoginForm = () => {
                 <button type="submit" className="btn btn-primary">Login</button>
                 <button type="button" className="btn btn-link" onClick={() => navigate('/register')}>Register</button>
             </form>
+            {snackbar.open && (
+                <div className="alert alert-info mt-3" role="alert">
+                    {snackbar.message}
+                    <button type="button" className="close" onClick={handleCloseSnackbar}>
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

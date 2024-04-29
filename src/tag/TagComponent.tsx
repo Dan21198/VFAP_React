@@ -1,13 +1,30 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 // @ts-ignore
 import { fetchTags, createTag, deleteTag } from './TagAPI.ts';
-import { Form, Button, InputGroup, Container, Row, Col} from 'react-bootstrap';
+import { Form, Button, InputGroup, Container, Row, Col } from 'react-bootstrap';
 import './tag.css';
+import '../global.css';
+import {SnackbarProps} from "../model/SnackbarProps";
+
+
+const Snackbar = ({ show, message, onClose, variant }: SnackbarProps) => {
+    return (
+        <div className={`snackbar ${variant}`} style={{ display: show ? 'flex' : 'none' }}>
+            <div>{message}</div>
+            <button type="button" className="close" onClick={onClose}>
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    );
+};
 
 const TagComponent = () => {
     const [newTagName, setNewTagName] = useState('');
     const [selectedTagId, setSelectedTagId] = useState('');
     const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+    const [showSnackbar, setShowSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarVariant, setSnackbarVariant] = useState<'success' | 'error'>('success');
 
     useEffect(() => {
         loadTags();
@@ -22,6 +39,7 @@ const TagComponent = () => {
             }
         } catch (error) {
             console.error('Error fetching tags:', error);
+            showSnackbarWithMessage('Failed to fetch tags', 'error');
         }
     };
 
@@ -31,8 +49,10 @@ const TagComponent = () => {
             await createTag(newTagName);
             setNewTagName('');
             await loadTags();
+            showSnackbarWithMessage('Tag created successfully', 'success');
         } catch (error) {
             console.error('Failed to create tag:', error);
+            showSnackbarWithMessage('Failed to create tag', 'error');
         }
     };
 
@@ -40,9 +60,21 @@ const TagComponent = () => {
         try {
             await deleteTag(selectedTagId);
             await loadTags();
+            showSnackbarWithMessage('Tag deleted successfully', 'success');
         } catch (error) {
             console.error('Failed to delete tag:', error);
+            showSnackbarWithMessage('Failed to delete tag', 'error');
         }
+    };
+
+    const showSnackbarWithMessage = (message: string, variant: 'success' | 'error') => {
+        setSnackbarMessage(message);
+        setSnackbarVariant(variant);
+        setShowSnackbar(true);
+    };
+
+    const handleCloseSnackbar = () => {
+        setShowSnackbar(false);
     };
 
     return (
@@ -64,7 +96,6 @@ const TagComponent = () => {
                             </InputGroup>
                         </InputGroup>
                     </Form>
-
                 </Col>
             </Row>
 
@@ -85,8 +116,15 @@ const TagComponent = () => {
                     </InputGroup>
                 </Col>
             </Row>
+
+            <Snackbar
+                show={showSnackbar}
+                message={snackbarMessage}
+                onClose={handleCloseSnackbar}
+                variant={snackbarVariant}
+            />
         </Container>
     );
 }
 
-    export default TagComponent;
+export default TagComponent;
