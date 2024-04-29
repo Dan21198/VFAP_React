@@ -19,30 +19,36 @@ const NoteList = () => {
     const [tags, setTags] = useState<Tag[]>([]);
     const [selectedTagId, setSelectedTagId] = useState<string>('');
     const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+    const [sortKey, setSortKey] = useState('title');
+    const [sortOrder, setSortOrder] = useState('asc');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [notesPerPage, setNotesPerPage] = useState(3);
+    const totalPages = Math.ceil(notes.length / notesPerPage);
 
     useEffect(() => {
         loadNotes();
         fetchTagsData();
     }, []);
 
-    const loadNotes = async () => {
+    const loadNotes = async (page = 1) => {
         try {
             const notesResponse = await fetchAllNotes();
             const notesData = notesResponse.data;
 
             const notesWithTag = await Promise.all(notesData.map(async (note: Note) => {
                 const tagsForNoteResponse = await getTagsByNoteId(note.id || 0);
-                const noteTags = tagsForNoteResponse.data;
-                return {
-                    ...note,
-                    tags: noteTags
-                };
+                return { ...note, tags: tagsForNoteResponse.data };
             }));
 
             setNotes(notesWithTag);
         } catch (error) {
             console.error('Failed to fetch notes:', error);
         }
+    };
+
+    const handlePageChange = (newPage: number) => {
+        setCurrentPage(newPage);
+        loadNotes(newPage);
     };
 
     const fetchTagsData = async () => {
@@ -71,6 +77,7 @@ const NoteList = () => {
             setEditingNoteId(noteId);
             const noteToEdit = notes.find(note => note.id === noteId);
             if (noteToEdit) {
+                console.log("Starting edit for note:", noteToEdit);
                 setUpdatedNote({
                     ...noteToEdit,
                     tags: noteToEdit.tags ? noteToEdit.tags.map(tag => ({ ...tag })) : []
@@ -78,6 +85,7 @@ const NoteList = () => {
             }
         }
     };
+
     const cancelEditing = () => {
         setEditingNoteId(null);
         setUpdatedNote({ id: 0, title: '', content: '', finished: false, finishTime: '' });
@@ -85,26 +93,19 @@ const NoteList = () => {
 
     const updateNoteHandler = async (noteId: number) => {
         try {
-            const updatedNoteWithTags = {
-                ...updatedNote,
-                tags: updatedNote.tags ?? []
-            };
+            const { tags, ...updatedNoteWithoutTags } = updatedNote;
+            console.log("Sending updated note to API:", updatedNoteWithoutTags);
 
-            if (selectedTagId) {
-                updatedNoteWithTags.tags.push({ id: Number(selectedTagId), name: '' });
-            }
+            await updateNote(noteId, updatedNoteWithoutTags);
+            console.log("Update note API called successfully.");
 
-            await updateNote(noteId, updatedNoteWithTags);
-            setEditingNoteId(null);
-            await loadNotes();
+            await loadNotes(); // Reload notes to reflect the updated information
+            console.log("Notes reloaded after update.");
+            setEditingNoteId(null); // Reset the editing state
         } catch (error) {
             console.error('Failed to update note:', error);
         }
     };
-
-
-
-
 
     const deleteNoteHandler = async (noteId: number) => {
         try {
@@ -141,8 +142,6 @@ const NoteList = () => {
             console.error('Failed to fetch notes:', error);
         }
     };
-
-
 
     const updateNotesAfterTagChange = async () => {
         await loadNotes();
@@ -257,6 +256,19 @@ const NoteList = () => {
                                     <p>No notes available.</p>
                                 )}
                             </div>
+                            <Row>
+                                <Col>
+                                    <div className="pagination">
+                                        <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                                            Previous
+                                        </Button>
+                                        <span> Page {currentPage} of {totalPages} </span>
+                                        <Button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                                            Next
+                                        </Button>
+                                    </div>
+                                </Col>
+                            </Row>
 
                             <div className="search-section">
                                 <form className="search-form">
