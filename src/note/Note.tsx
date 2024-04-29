@@ -8,6 +8,7 @@ import {assignTagToNote, fetchTags, getTagsByNoteId, removeTagFromNote} from '..
 import {  Tag } from "../model/Tag.ts";
 import {Button, Container, Row, Col, FormGroup, Form} from 'react-bootstrap';
 import './note.css';
+import 'bootstrap-icons/font/bootstrap-icons.css';
 
 const NoteList = () => {
     const [notes, setNotes] = useState<Note[]>([]);
@@ -23,7 +24,7 @@ const NoteList = () => {
     const [sortOrder, setSortOrder] = useState('asc');
     const [currentPage, setCurrentPage] = useState(1);
     const [notesPerPage, setNotesPerPage] = useState(3);
-    const totalPages = Math.ceil(notes.length / notesPerPage);
+    const [totalPages, setTotalPages] = useState(0);
 
     useEffect(() => {
         loadNotes();
@@ -35,15 +36,29 @@ const NoteList = () => {
             const notesResponse = await fetchAllNotes();
             const notesData = notesResponse.data;
 
-            const notesWithTag = await Promise.all(notesData.map(async (note: Note) => {
+            const sortedNotes = sortNotes(notesData, sortKey, sortOrder);
+
+            const startIndex = (page - 1) * notesPerPage;
+            const endIndex = startIndex + notesPerPage;
+
+            const currentNotes = sortedNotes.slice(startIndex, endIndex);
+
+            const notesWithTag = await Promise.all(currentNotes.map(async (note: Note) => {
                 const tagsForNoteResponse = await getTagsByNoteId(note.id || 0);
                 return { ...note, tags: tagsForNoteResponse.data };
             }));
 
             setNotes(notesWithTag);
+            setCurrentPage(page);
+            setTotalPages(Math.ceil(notesData.length / notesPerPage));
         } catch (error) {
             console.error('Failed to fetch notes:', error);
         }
+    };
+
+    const toggleSortOrder = () => {
+        setSortOrder(prevOrder => (prevOrder === 'asc' ? 'desc' : 'asc'));
+        loadNotes(currentPage);
     };
 
     const handlePageChange = (newPage: number) => {
@@ -59,6 +74,18 @@ const NoteList = () => {
         } catch (error) {
             console.error('Failed to fetch tags:', error);
         }
+    };
+
+    const sortNotes = (notes: Note[], sortKey: string, sortOrder: string) => {
+        return notes.sort((a: any, b: any) => {
+            if (a[sortKey] < b[sortKey]) {
+                return sortOrder === 'asc' ? -1 : 1;
+            }
+            if (a[sortKey] > b[sortKey]) {
+                return sortOrder === 'asc' ? 1 : -1;
+            }
+            return 0;
+        });
     };
 
 
@@ -177,6 +204,22 @@ const NoteList = () => {
                     <div className="custom-note-form">
                         <div className="main-content">
                             <div className="notes-section">
+                                <Row>
+                                    <Col>
+                                        <div className="sort-toggle-wrapper">
+                                            <Button
+                                                onClick={toggleSortOrder}
+                                                variant="light"
+                                                className="sort-toggle-button"
+                                                aria-label="Toggle sort order"
+                                            >
+                                                {sortOrder === 'asc' ?
+                                                    <i className="bi bi-sort-alpha-down-alt"></i> :
+                                                    <i className="bi bi-sort-alpha-down"></i>}
+                                            </Button>
+                                        </div>
+                                    </Col>
+                                </Row>
                                 <h2>Existing Notes</h2>
                                 {notes.length > 0 ? (
                                     <ul className="list-group">
@@ -255,20 +298,20 @@ const NoteList = () => {
                                 ) : (
                                     <p>No notes available.</p>
                                 )}
+                                <Row>
+                                    <Col>
+                                        <div className="pagination">
+                                            {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
+                                                <span
+                                                    key={page}
+                                                    className={`page-dot ${page === currentPage ? 'active' : ''}`}
+                                                    onClick={() => handlePageChange(page)}
+                                                />
+                                            ))}
+                                        </div>
+                                    </Col>
+                                </Row>
                             </div>
-                            <Row>
-                                <Col>
-                                    <div className="pagination">
-                                        <Button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                                            Previous
-                                        </Button>
-                                        <span> Page {currentPage} of {totalPages} </span>
-                                        <Button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                                            Next
-                                        </Button>
-                                    </div>
-                                </Col>
-                            </Row>
 
                             <div className="search-section">
                                 <form className="search-form">

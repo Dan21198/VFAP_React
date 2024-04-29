@@ -119,6 +119,49 @@
     border-radius: 5px;
 }
 
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.page-dot {
+    height: 15px;
+    width: 15px;
+    margin: 0 5px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.page-dot.active {
+    background-color: #666;
+}
+
+.sort-toggle-wrapper .sort-toggle-button {
+    background-color: #f8f9fa !important;
+    border: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: background-color 0.3s ease !important;
+}
+
+.sort-toggle-wrapper .sort-toggle-button:hover {
+    background-color: #e2e6ea !important;
+    cursor: pointer !important;
+}
+
+.sort-toggle-wrapper .sort-toggle-button i {
+    color: #0d6efd !important;
+    font-size: 1.5rem !important;
+}
+
+
+
+
 @media (max-width: 768px) {
     .main-content {
         flex-direction: column;
