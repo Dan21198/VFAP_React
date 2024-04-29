@@ -9,6 +9,18 @@ import {  Tag } from "../model/Tag.ts";
 import {Button, Container, Row, Col, FormGroup, Form} from 'react-bootstrap';
 import './note.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import {SnackbarProps} from "../model/SnackbarProps";
+
+const Snackbar = ({ show, message, onClose, variant }: SnackbarProps) => {
+    return (
+        <div className={`snackbar ${variant}`} style={{ display: show ? 'flex' : 'none' }}>
+            <div>{message}</div>
+            <button type="button" className="close" onClick={onClose}>
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    );
+};
 
 const NoteList = () => {
     const [notes, setNotes] = useState<Note[]>([]);
@@ -25,6 +37,9 @@ const NoteList = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [notesPerPage, setNotesPerPage] = useState(3);
     const [totalPages, setTotalPages] = useState(0);
+    const [showSnackbar, setShowSnackbar] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarVariant, setSnackbarVariant] = useState<'success' | 'error'>('success');
 
     useEffect(() => {
         loadNotes();
@@ -54,16 +69,15 @@ const NoteList = () => {
         }
     };
 
-
     const toggleSortOrder = () => {
         const newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-        setSortOrder(newSortOrder); // Update sortOrder state
-        loadNotes(currentPage, sortKey, newSortOrder); // Use the updated sortOrder
+        setSortOrder(newSortOrder);
+        loadNotes(currentPage, sortKey, newSortOrder);
     };
 
     const handlePageChange = (newPage: number) => {
         setCurrentPage(newPage);
-        loadNotes(newPage, sortKey, sortOrder); // Pass sortOrder here
+        loadNotes(newPage, sortKey, sortOrder);
     };
 
     const fetchTagsData = async () => {
@@ -87,13 +101,14 @@ const NoteList = () => {
         });
     };
 
-
     const createNoteHandler = async () => {
         try {
             await createNote(newNote);
             setNewNote({ id: 0, title: '', content: '', finishTime: '', finished: false });
             await loadNotes();
+            showSnackbarWithMessage('Note created successfully', 'success');
         } catch (error) {
+            showSnackbarWithMessage('Failed to create note', 'error');
         }
     };
 
@@ -122,8 +137,10 @@ const NoteList = () => {
             await updateNote(noteId, updatedNoteWithoutTags);
 
             await loadNotes();
-            setEditingNoteId(null); // Reset the editing state
+            setEditingNoteId(null);
+            showSnackbarWithMessage('Note updated successfully', 'success');
         } catch (error) {
+            showSnackbarWithMessage('Failed to update note', 'error');
         }
     };
 
@@ -131,7 +148,9 @@ const NoteList = () => {
         try {
             await deleteNote(noteId);
             await loadNotes();
+            showSnackbarWithMessage('Note deleted successfully', 'success');
         } catch (error) {
+            showSnackbarWithMessage('Failed to delete note', 'error');
         }
     };
 
@@ -157,9 +176,9 @@ const NoteList = () => {
             setTotalPages(Math.ceil(sortedNotes.length / notesPerPage));
             setCurrentPage(1);
         } catch (error) {
+            showSnackbarWithMessage('Failed to search notes', 'error');
         }
     };
-
 
     const updateNotesAfterTagChange = async () => {
         await loadNotes();
@@ -172,6 +191,7 @@ const NoteList = () => {
                 await updateNotesAfterTagChange();
             }
         } catch (error) {
+            showSnackbarWithMessage('Failed to assign tag to note', 'error');
         }
     };
 
@@ -182,7 +202,18 @@ const NoteList = () => {
                 await updateNotesAfterTagChange();
             }
         } catch (error) {
+            showSnackbarWithMessage('Failed to remove tag from note', 'error');
         }
+    };
+
+    const showSnackbarWithMessage = (message: string, variant: 'success' | 'error') => {
+        setSnackbarMessage(message);
+        setSnackbarVariant(variant);
+        setShowSnackbar(true);
+    };
+
+    const handleCloseSnackbar = () => {
+        setShowSnackbar(false);
     };
 
 
@@ -274,13 +305,13 @@ const NoteList = () => {
                                                                 Tag</Button>
                                                         </div>
 
-                                                            <div className="button-group">
-                                                                <Button type="submit">Save</Button>
-                                                                <Button type="button"
-                                                                        onClick={cancelEditing}>Cancel</Button>
-                                                            </div>
+                                                        <div className="button-group">
+                                                            <Button type="submit">Save</Button>
+                                                            <Button type="button"
+                                                                    onClick={cancelEditing}>Cancel</Button>
+                                                        </div>
                                                     </form>
-                                                    )}
+                                                )}
                                             </li>
                                         ))}
                                     </ul>
@@ -306,7 +337,8 @@ const NoteList = () => {
                                 <form className="search-form">
                                     <div className="form-group">
                                         <label htmlFor="searchFinished">Finished:</label>
-                                        <select id="searchFinished" className="form-control" value={searchFinished} onChange={(e) => setSearchFinished(e.target.value)}>
+                                        <select id="searchFinished" className="form-control" value={searchFinished}
+                                                onChange={(e) => setSearchFinished(e.target.value)}>
                                             <option value="">All</option>
                                             <option value="true">Yes</option>
                                             <option value="false">No</option>
@@ -332,7 +364,7 @@ const NoteList = () => {
                 </Col>
             </Row>
 
-            <hr />
+            <hr/>
 
             <Row>
                 <Col>
@@ -341,21 +373,31 @@ const NoteList = () => {
                         <form onSubmit={createNoteHandler}>
                             <div className="form-group">
                                 <label>Title:</label>
-                                <input type="text" className="form-control" value={newNote.title} onChange={(e) => setNewNote({ ...newNote, title: e.target.value })} required />
+                                <input type="text" className="form-control" value={newNote.title}
+                                       onChange={(e) => setNewNote({...newNote, title: e.target.value})} required/>
                             </div>
                             <div className="form-group">
                                 <label>Content:</label>
-                                <textarea className="form-control" value={newNote.content} onChange={(e) => setNewNote({ ...newNote, content: e.target.value })} required></textarea>
+                                <textarea className="form-control" value={newNote.content}
+                                          onChange={(e) => setNewNote({...newNote, content: e.target.value})}
+                                          required></textarea>
                             </div>
                             <div className="form-group">
                                 <label>Finish Time:</label>
-                                <input type="datetime-local" className="form-control" value={newNote.finishTime} onChange={(e) => setNewNote({ ...newNote, finishTime: e.target.value })} />
+                                <input type="datetime-local" className="form-control" value={newNote.finishTime}
+                                       onChange={(e) => setNewNote({...newNote, finishTime: e.target.value})}/>
                             </div>
                             <Button variant="primary" type="submit">Create Note</Button>
                         </form>
                     </div>
                 </Col>
             </Row>
+            <Snackbar
+                show={showSnackbar}
+                message={snackbarMessage}
+                onClose={handleCloseSnackbar}
+                variant={snackbarVariant}
+            />
         </Container>
     );
 
