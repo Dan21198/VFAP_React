@@ -31,7 +31,7 @@ const NoteList = () => {
         fetchTagsData();
     }, []);
 
-    const loadNotes = async (page = 1) => {
+    const loadNotes = async (page = 1, sortKey = 'title', sortOrder = 'asc') => {
         try {
             const notesResponse = await fetchAllNotes();
             let notesData = notesResponse.data;
@@ -57,13 +57,14 @@ const NoteList = () => {
 
 
     const toggleSortOrder = () => {
-        setSortOrder(prevOrder => (prevOrder === 'asc' ? 'desc' : 'asc'));
-        loadNotes(currentPage);
+        const newSortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+        setSortOrder(newSortOrder); // Update sortOrder state
+        loadNotes(currentPage, sortKey, newSortOrder); // Use the updated sortOrder
     };
 
     const handlePageChange = (newPage: number) => {
         setCurrentPage(newPage);
-        loadNotes(newPage);
+        loadNotes(newPage, sortKey, sortOrder); // Pass sortOrder here
     };
 
     const fetchTagsData = async () => {
@@ -214,8 +215,8 @@ const NoteList = () => {
                                                 aria-label="Toggle sort order"
                                             >
                                                 {sortOrder === 'asc' ?
-                                                    <i className="bi bi-sort-alpha-down-alt"></i> :
-                                                    <i className="bi bi-sort-alpha-down"></i>}
+                                                    <i className="bi bi-sort-alpha-down"></i> :
+                                                    <i className="bi bi-sort-alpha-down-alt"></i>}
                                             </Button>
                                         </div>
                                     </Col>
