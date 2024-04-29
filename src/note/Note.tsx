@@ -34,27 +34,27 @@ const NoteList = () => {
     const loadNotes = async (page = 1) => {
         try {
             const notesResponse = await fetchAllNotes();
-            const notesData = notesResponse.data;
+            let notesData = notesResponse.data;
 
-            const sortedNotes = sortNotes(notesData, sortKey, sortOrder);
-
-            const startIndex = (page - 1) * notesPerPage;
-            const endIndex = startIndex + notesPerPage;
-
-            const currentNotes = sortedNotes.slice(startIndex, endIndex);
-
-            const notesWithTag = await Promise.all(currentNotes.map(async (note: Note) => {
+            const notesWithTags = await Promise.all(notesData.map(async (note: Note) => {
                 const tagsForNoteResponse = await getTagsByNoteId(note.id || 0);
                 return { ...note, tags: tagsForNoteResponse.data };
             }));
 
-            setNotes(notesWithTag);
+            const sortedNotes = sortNotes(notesWithTags, sortKey, sortOrder);
+
+            const startIndex = (page - 1) * notesPerPage;
+            const endIndex = startIndex + notesPerPage;
+            const currentNotes = sortedNotes.slice(startIndex, endIndex);
+
+            setNotes(currentNotes);
+            setTotalPages(Math.ceil(notesWithTags.length / notesPerPage));
             setCurrentPage(page);
-            setTotalPages(Math.ceil(notesData.length / notesPerPage));
         } catch (error) {
             console.error('Failed to fetch notes:', error);
         }
     };
+
 
     const toggleSortOrder = () => {
         setSortOrder(prevOrder => (prevOrder === 'asc' ? 'desc' : 'asc'));
@@ -230,7 +230,7 @@ const NoteList = () => {
                                                         <strong>{note.title}</strong> - {note.content}<br/><br/>
                                                         <p>Finished: {note.finished ? 'Yes' : 'No'}</p>
                                                         <p>Finish Time: {note.finishTime}</p>
-                                                        <p>Tags: {note.tags ? note.tags.map(tag => tag.name).join(', ') : 'No tags'}</p>
+                                                        <p>Tags: {note.tags && note.tags.length > 0 ? note.tags.map(tag => tag.name).join(', ') : 'No tags'}</p>
                                                         <Button variant="primary"
                                                                 onClick={() => startEditing(note.id)}>Edit</Button>
                                                         <Button variant="danger"
