@@ -6,7 +6,7 @@ import { Note } from "../model/Note";
 import {assignTagToNote, fetchTags, getTagsByNoteId, removeTagFromNote} from '../tag/TagAPI.ts';
 // @ts-ignore
 import {  Tag } from "../model/Tag.ts";
-import {Button, Container, Row, Col, FormGroup, Form} from 'react-bootstrap';
+import {Button, Container, Row, Col, FormGroup, Form, Tabs, Tab} from 'react-bootstrap';
 import './note.css';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import {SnackbarProps} from "../model/SnackbarProps";
@@ -219,203 +219,216 @@ const NoteList = () => {
 
     return (
         <Container>
-            <Row>
-                <Col>
-                    <div className="custom-note-form">
-                        <div className="main-content">
-                            <div className="notes-section">
-                                <Row>
-                                    <Col>
-                                        <div className="sort-toggle-wrapper">
-                                            <Button
-                                                onClick={toggleSortOrder}
-                                                variant="light"
-                                                className="sort-toggle-button"
-                                                aria-label="Toggle sort order"
-                                            >
-                                                {sortOrder === 'asc' ?
-                                                    <i className="bi bi-sort-alpha-down"></i> :
-                                                    <i className="bi bi-sort-alpha-down-alt"></i>}
-                                            </Button>
-                                        </div>
-                                    </Col>
-                                </Row>
-                                <h2>Existing Notes</h2>
-                                {notes.length > 0 ? (
-                                    <table className="table">
-                                        <thead>
-                                        <tr>
-                                            <th>Title</th>
-                                            <th>Content</th>
-                                            <th>Finished</th>
-                                            <th>Finish Time</th>
-                                            <th>Tags</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        {notes.map(note => (
-                                            <tr key={note.id}>
-                                                {editingNoteId !== note.id ? (
-                                                    <>
-                                                        <td>{note.title}</td>
-                                                        <td>{note.content}</td>
-                                                        <td>{note.finished ? 'Yes' : 'No'}</td>
-                                                        <td>{note.finishTime}</td>
-                                                        <td>{note.tags ? note.tags.map(tag => tag.name).join(', ') : ''}</td>
-                                                        <td>
-                                                        <Button variant="primary" onClick={() => startEditing(note.id)}>Edit</Button>
-                                                            <Button variant="danger" onClick={() => deleteNoteHandler(note.id || 0)}>Delete</Button>
-                                                        </td>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <td>
-                                                            <input
-                                                                type="text"
-                                                                className="form-control"
-                                                                value={updatedNote.title}
-                                                                onChange={(e) => setUpdatedNote({
-                                                                    ...updatedNote,
-                                                                    title: e.target.value
-                                                                })}
-                                                                required
-                                                            />
-                                                        </td>
-                                                        <td>
-                    <textarea
-                        className="form-control"
-                        value={updatedNote.content}
-                        onChange={(e) => setUpdatedNote({
-                            ...updatedNote,
-                            content: e.target.value
-                        })}
-                        required
-                    />
-                                                        </td>
-                                                        <td>
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={updatedNote.finished}
-                                                                className="form-check-input"
-                                                                onChange={(e) => setUpdatedNote({
-                                                                    ...updatedNote,
-                                                                    finished: e.target.checked
-                                                                })}
-                                                            />
-                                                        </td>
-                                                        <td>
-                                                            <input
-                                                                type="datetime-local"
-                                                                className="form-control"
-                                                                value={updatedNote.finishTime}
-                                                                onChange={(e) => setUpdatedNote({
-                                                                    ...updatedNote,
-                                                                    finishTime: e.target.value
-                                                                })}
-                                                            />
-                                                        </td>
-                                                        <td>
-                                                            <select
-                                                                className="form-control"
-                                                                value={selectedTagId}
-                                                                onChange={(e) => setSelectedTagId(e.target.value)}
-                                                            >
-                                                                <option value="">Select Tag</option>
-                                                                {availableTags.map(tag => (
-                                                                    <option key={tag.id} value={tag.id}>{tag.name}</option>
-                                                                ))}
-                                                            </select>
-                                                            <Button variant="primary" type="button" onClick={() => assignTag(Number(selectedTagId))}>Assign Tag</Button>
-                                                            <Button variant="danger" type="button" onClick={() => unassignTag(Number(selectedTagId))}>Unassign Tag</Button>
-                                                        </td>
-                                                        <td>
-                                                            <Button type="submit" onClick={() => updateNoteHandler(note.id || 0)}>Save</Button>
-                                                            <Button type="button" onClick={cancelEditing}>Cancel</Button>
-                                                        </td>
-                                                    </>
-                                                )}
-                                            </tr>
-                                        ))}
-                                        </tbody>
-                                    </table>
-                                ) : (
-                                    <p>No notes available.</p>
-                                )}
-                                <Row>
-                                    <Col>
-                                        <div className="pagination">
-                                            {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
-                                                <span
-                                                    key={page}
-                                                    className={`page-dot ${page === currentPage ? 'active' : ''}`}
-                                                    onClick={() => handlePageChange(page)}
-                                                />
-                                            ))}
-                                        </div>
-                                    </Col>
-                                </Row>
+            <Tabs defaultActiveKey="notes" id="note-tabs">
+                <Tab eventKey="notes" title="Notes">
+                    <Row>
+                        <Col>
+                            <div className="custom-note-form">
+                                <div className="main-content">
+                                    <div className="notes-section">
+                                        <Row>
+                                            <Col>
+                                                <div className="sort-toggle-wrapper">
+                                                    <Button
+                                                        onClick={toggleSortOrder}
+                                                        variant="light"
+                                                        className="sort-toggle-button"
+                                                        aria-label="Toggle sort order"
+                                                    >
+                                                        {sortOrder === 'asc' ?
+                                                            <i className="bi bi-sort-alpha-down"></i> :
+                                                            <i className="bi bi-sort-alpha-down-alt"></i>}
+                                                    </Button>
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                        <h2>Existing Notes</h2>
+                                        {notes.length > 0 ? (
+                                            <table className="table">
+                                                <thead>
+                                                <tr>
+                                                    <th>Title</th>
+                                                    <th>Content</th>
+                                                    <th>Finished</th>
+                                                    <th>Finish Time</th>
+                                                    <th>Tags</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {notes.map(note => (
+                                                    <tr key={note.id}>
+                                                        {editingNoteId !== note.id ? (
+                                                            <>
+                                                                <td>{note.title}</td>
+                                                                <td>{note.content}</td>
+                                                                <td>{note.finished ? 'Yes' : 'No'}</td>
+                                                                <td>{note.finishTime}</td>
+                                                                <td>{note.tags ? note.tags.map(tag => tag.name).join(', ') : ''}</td>
+                                                                <td>
+                                                                    <Button variant="primary"
+                                                                            onClick={() => startEditing(note.id)}>Edit</Button>
+                                                                    <Button variant="danger"
+                                                                            onClick={() => deleteNoteHandler(note.id || 0)}>Delete</Button>
+                                                                </td>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <td>
+                                                                    <input
+                                                                        type="text"
+                                                                        className="form-control"
+                                                                        value={updatedNote.title}
+                                                                        onChange={(e) => setUpdatedNote({
+                                                                            ...updatedNote,
+                                                                            title: e.target.value
+                                                                        })}
+                                                                        required
+                                                                    />
+                                                                </td>
+                                                                <td>
+                                                                    <textarea
+                                                                        className="form-control"
+                                                                        value={updatedNote.content}
+                                                                        onChange={(e) => setUpdatedNote({
+                                                                            ...updatedNote,
+                                                                            content: e.target.value
+                                                                        })}
+                                                                        required
+                                                                    />
+                                                                </td>
+                                                                <td>
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        checked={updatedNote.finished}
+                                                                        className="form-check-input"
+                                                                        onChange={(e) => setUpdatedNote({
+                                                                            ...updatedNote,
+                                                                            finished: e.target.checked
+                                                                        })}
+                                                                    />
+                                                                </td>
+                                                                <td>
+                                                                    <input
+                                                                        type="datetime-local"
+                                                                        className="form-control"
+                                                                        value={updatedNote.finishTime}
+                                                                        onChange={(e) => setUpdatedNote({
+                                                                            ...updatedNote,
+                                                                            finishTime: e.target.value
+                                                                        })}
+                                                                    />
+                                                                </td>
+                                                                <td>
+                                                                    <select
+                                                                        className="form-control"
+                                                                        value={selectedTagId}
+                                                                        onChange={(e) => setSelectedTagId(e.target.value)}
+                                                                    >
+                                                                        <option value="">Select Tag</option>
+                                                                        {availableTags.map(tag => (
+                                                                            <option key={tag.id}
+                                                                                    value={tag.id}>{tag.name}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                    <Button variant="primary" type="button"
+                                                                            onClick={() => assignTag(Number(selectedTagId))}>Assign
+                                                                        Tag</Button>
+                                                                    <Button variant="danger" type="button"
+                                                                            onClick={() => unassignTag(Number(selectedTagId))}>Unassign
+                                                                        Tag</Button>
+                                                                </td>
+                                                                <td>
+                                                                    <Button type="submit"
+                                                                            onClick={() => updateNoteHandler(note.id || 0)}>Save</Button>
+                                                                    <Button type="button"
+                                                                            onClick={cancelEditing}>Cancel</Button>
+                                                                </td>
+                                                            </>
+                                                        )}
+                                                    </tr>
+                                                ))}
+                                                </tbody>
+                                            </table>
+                                        ) : (
+                                            <p>No notes available.</p>
+                                        )}
+                                        <Row>
+                                            <Col>
+                                                <div className="pagination">
+                                                    {Array.from({length: totalPages}, (_, i) => i + 1).map(page => (
+                                                        <span
+                                                            key={page}
+                                                            className={`page-dot ${page === currentPage ? 'active' : ''}`}
+                                                            onClick={() => handlePageChange(page)}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </Col>
+                                        </Row>
+                                    </div>
+                                    <div className="search-section">
+                                        <form className="search-form">
+                                            <div className="form-group">
+                                                <label htmlFor="searchFinished">Finished:</label>
+                                                <select id="searchFinished" className="form-control"
+                                                        value={searchFinished}
+                                                        onChange={(e) => setSearchFinished(e.target.value)}>
+                                                    <option value="">All</option>
+                                                    <option value="true">Yes</option>
+                                                    <option value="false">No</option>
+                                                </select>
+                                            </div>
+                                            <div className="form-group">
+                                                <label htmlFor="searchTag">Tag:</label>
+                                                <select id="searchTag" className="form-control" value={searchTagId}
+                                                        onChange={(e) => setSearchTagId(e.target.value)}>
+                                                    <option value="">All</option>
+                                                    {tags.map(tag => (
+                                                        <option key={tag.id} value={tag.id}>{tag.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <button type="button" className="btn btn-primary search-button"
+                                                    onClick={searchNotes}>Search
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
                             </div>
-
-                            <div className="search-section">
-                                <form className="search-form">
+                        </Col>
+                    </Row>
+                </Tab>
+                <Tab eventKey="create" title="Create">
+                    <Row>
+                        <Col>
+                            <div className="create-note">
+                                <h2>Create New Note</h2>
+                                <form onSubmit={createNoteHandler}>
                                     <div className="form-group">
-                                        <label htmlFor="searchFinished">Finished:</label>
-                                        <select id="searchFinished" className="form-control" value={searchFinished}
-                                                onChange={(e) => setSearchFinished(e.target.value)}>
-                                            <option value="">All</option>
-                                            <option value="true">Yes</option>
-                                            <option value="false">No</option>
-                                        </select>
+                                        <label>Title:</label>
+                                        <input type="text" className="form-control" value={newNote.title}
+                                               onChange={(e) => setNewNote({...newNote, title: e.target.value})}
+                                               required/>
                                     </div>
                                     <div className="form-group">
-                                        <label htmlFor="searchTag">Tag:</label>
-                                        <select id="searchTag" className="form-control" value={searchTagId}
-                                                onChange={(e) => setSearchTagId(e.target.value)}>
-                                            <option value="">All</option>
-                                            {tags.map(tag => (
-                                                <option key={tag.id} value={tag.id}>{tag.name}</option>
-                                            ))}
-                                        </select>
+                                        <label>Content:</label>
+                                        <textarea className="form-control" value={newNote.content}
+                                                  onChange={(e) => setNewNote({...newNote, content: e.target.value})}
+                                                  required></textarea>
                                     </div>
-                                    <button type="button" className="btn btn-primary search-button"
-                                            onClick={searchNotes}>Search
-                                    </button>
+                                    <div className="form-group">
+                                        <label>Finish Time:</label>
+                                        <input type="datetime-local" className="form-control" value={newNote.finishTime}
+                                               onChange={(e) => setNewNote({...newNote, finishTime: e.target.value})}/>
+                                    </div>
+                                    <Button variant="primary" type="submit">Create Note</Button>
                                 </form>
                             </div>
-                        </div>
-                    </div>
-                </Col>
-            </Row>
-
-            <hr/>
-
-            <Row>
-                <Col>
-                    <div className="create-note">
-                        <h2>Create New Note</h2>
-                        <form onSubmit={createNoteHandler}>
-                            <div className="form-group">
-                                <label>Title:</label>
-                                <input type="text" className="form-control" value={newNote.title}
-                                       onChange={(e) => setNewNote({...newNote, title: e.target.value})} required/>
-                            </div>
-                            <div className="form-group">
-                                <label>Content:</label>
-                                <textarea className="form-control" value={newNote.content}
-                                          onChange={(e) => setNewNote({...newNote, content: e.target.value})}
-                                          required></textarea>
-                            </div>
-                            <div className="form-group">
-                                <label>Finish Time:</label>
-                                <input type="datetime-local" className="form-control" value={newNote.finishTime}
-                                       onChange={(e) => setNewNote({...newNote, finishTime: e.target.value})}/>
-                            </div>
-                            <Button variant="primary" type="submit">Create Note</Button>
-                        </form>
-                    </div>
-                </Col>
-            </Row>
+                        </Col>
+                    </Row>
+                </Tab>
+            </Tabs>
             <Snackbar
                 show={showSnackbar}
                 message={snackbarMessage}
