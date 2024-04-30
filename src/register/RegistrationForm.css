@@ -1,0 +1,51 @@
+.registration-container {
+    max-width: 400px;
+    margin: auto;
+    padding: 20px;
+}
+
+.custom-registration-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.custom-registration-form label {
+    margin-bottom: 8px;
+}
+
+.custom-registration-form input {
+    padding: 10px;
+    margin-bottom: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.snackbar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #f44336;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.snackbar .close {
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: inherit;
+    padding: 0;
+    margin-left: 10px;
+    font-size: 20px;
+    font-weight: bold;
+    align-self: flex-start;
+}

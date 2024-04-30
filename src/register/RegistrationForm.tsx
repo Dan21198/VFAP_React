@@ -1,6 +1,7 @@
 import React, { useState, FormEvent } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import './RegistrationForm.css';
 
 const RegistrationForm = () => {
     const [username, setUsername] = useState('');
@@ -17,7 +18,7 @@ const RegistrationForm = () => {
         event.preventDefault();
         try {
             const response = await axios.post('http://localhost:8080/api/v1/auth/register', {
-                username: username,
+                userName: username,
                 email: email,
                 password: password
             });
@@ -28,7 +29,7 @@ const RegistrationForm = () => {
     };
 
     return (
-        <div>
+        <div className="registration-container">
             <form onSubmit={register} className="custom-registration-form">
                 <label htmlFor="username">Username:</label>
                 <input
