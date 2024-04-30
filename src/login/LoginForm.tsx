@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import '../global.css';
+import './LoginForm.css';
 
 const LoginForm = () => {
     const [loginEmail, setLoginEmail] = useState('');
@@ -16,7 +17,6 @@ const LoginForm = () => {
                 email: loginEmail,
                 password: loginPassword
             });
-            console.log('Authentication successful:', response.data);
 
             const accessToken = response.data.access_token;
             if (accessToken) {
